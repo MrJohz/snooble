@@ -1,0 +1,19 @@
+language: python
+python:
+  - "3.4"
+  - "3.3"
+  - "3.2"
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+install:
+  - "pip install -r requirements.txt"
+  - "pip install -r dev-requirements.txt"
+
+script:
+  - "make test"
+
+after_success:
+  - "coveralls --config_file=pytest.ini"

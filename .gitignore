@@ -1,0 +1,12 @@
+.python-version
+__pycache__
+*.pyc
+*.py,cover
+.coverage
+.cache
+test_readme.py
+htmlcov
+docs/build
+*.egg-info
+build
+dist
