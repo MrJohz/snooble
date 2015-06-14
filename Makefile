@@ -3,7 +3,10 @@ all:
 	@echo "clean        - get rid of spare files"
 
 test:
-	py.test tests snooble
+	py.test snooble tests
+
+test-cruel:
+	py.test --pep8 --flakes snooble tests
 
 clean:
 	rm .coverage
