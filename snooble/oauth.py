@@ -40,3 +40,23 @@ class OAuth(object):
 
         else:
             raise ValueError("Invalid oauth kind {kind}".format(kind=self.kind))
+
+
+class Authorization(object):
+
+    __slots__ = ['token_type', 'token', 'recieved', 'length']
+
+    def __init__(self, token_type, token, recieved, length):
+        self.token_type = token_type
+        self.token = token
+        self.recieved = recieved
+        self.length = length
+
+    def __eq__(self, other):
+        if type(self) == type(other):
+            for elem in self.__slots__:
+                if getattr(self, elem) != getattr(other, elem):
+                    return False
+            else:
+                return True
+        return False

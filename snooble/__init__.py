@@ -1,5 +1,6 @@
 import collections
 import urllib
+import time
 
 import requests
 
@@ -24,27 +25,47 @@ class Snooble(object):
         self.useragent = useragent
         self.auth_domain, self.www_domain = auth_domain, www_domain
 
-        self._ratelimiter = ratelimit if isinstance(ratelimit, RateLimiter) else \
-                            RateLimiter(*ratelimit, bursty=bursty)
+        self._limiter = ratelimit if isinstance(ratelimit, RateLimiter) else \
+                        RateLimiter(*ratelimit, bursty=bursty)
 
         self._session = requests.Session()
         self._session.headers.update({"User-Agent": useragent})
-        self._limited_session = self._ratelimiter.limitate(self._session, ['get'])
+        self._limited_session = self._limiter.limitate(self._session, ['get', 'post'])
 
         self._authorized = False
+        self.authorization = None
 
-    def oauth(self, auth=None, **kwargs):
-        if auth is None:
-            auth = oauth.OAuth(**kwargs)
+    def oauth(self, auth=None, *args, **kwargs):
+        if not isinstance(auth, oauth.OAuth):
+            auth = oauth.OAuth(auth, *args, **kwargs)
 
         self._authorized = False
 
         if auth.kind == oauth.SCRIPT_KIND:
             client_auth = requests.auth.HTTPBasicAuth(auth.client_id, auth.secret_id)
-            post_data = {"grant_type": "password",
+            post_data = {"scope": ",".join(auth.scopes), "grant_type": "password",
                 "username": auth.username, "password": auth.password}
             url = urllib.parse.urljoin(self.domain.www, 'api/v1/access_token')
-            response = self._limited_session.get(url, auth=client_auth, data=post_data)
+            response = self._limited_session.post(url, auth=client_auth, data=post_data)
+
+            if response.status_code != 200:
+                if response.status_code == 401:
+                    m = "Authorization failed (are all your details correct)"
+                    raise errors.RedditError(m, response=response)
+                else:
+                    m = "Unknown authorization error"
+                    raise errors.RedditError(m, response=response)
+
+            r = response.json()
+
+            self.authorization = \
+                oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
+                                    token=r['access_token'], length=r['expires_in'])
+
+            self._authorized = True
+
+        elif auth.kind == oauth.EXPLICIT_KIND:
+            pass
 
     def get(self, url):
         if not self._authorized:

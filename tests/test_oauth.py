@@ -68,3 +68,28 @@ class TestOAuth(object):
             client_id='...')
 
         assert auth.client_id == '...'
+
+
+class TestAuthorization(object):
+
+    def test_initialization(self):
+        auth = oauth.Authorization(token_type='a', token='b', recieved=0, length=1)
+
+        assert auth.token_type == 'a'
+        assert auth.token == 'b'
+        assert auth.recieved == 0
+        assert auth.length == 1
+
+    def test_equality(self):
+        auth1 = oauth.Authorization(token_type='a', token='b', recieved=0, length=1)
+        auth2 = oauth.Authorization(token_type='a', token='b', recieved=0, length=1)
+        auth3 = oauth.Authorization(token_type='a', token='b', recieved=0, length=4)
+
+        from collections import namedtuple
+        shitty_auth = namedtuple('Authorization', ['token_type', 'token', 'recieved', 'length'])
+        auth4 = shitty_auth(token_type='a', token='b', recieved=0, length=1)
+
+        assert auth1 == auth2 and auth2 == auth1
+        assert auth1 != auth3
+        assert auth1 != auth4
+
