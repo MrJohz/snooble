@@ -24,8 +24,18 @@ class TestRatelimit(object):
         assert limiter.bucket_size == 1
         assert limiter.current_bucket == 1
         assert limiter.refresh_period == 1 / 5
+
+        limiter.bursty = False
+        assert limiter.bucket_size == 1
+        assert limiter.current_bucket == 1
+        assert limiter.refresh_period == 1 / 5
         limiter.take()
         assert limiter.current_bucket == 0
+
+        limiter.bursty = True
+        assert limiter.bucket_size == 5
+        assert limiter.current_bucket == 0
+        assert limiter.refresh_period == 1
 
         limiter.bursty = True
         assert limiter.bucket_size == 5
@@ -144,6 +154,26 @@ class TestLimitation(object):
 
         limited_object.limited_attribute
         assert take_mocker.called
+
+    def test_wrapper_passes_information_through(self):
+        take_mocker = mock.Mock(return_value=True)
+        ratelimiter = ratelimit.RateLimiter(1, 1)
+        ratelimiter.take = take_mocker
+
+        test_object = mock.Mock()
+        limited_object = ratelimiter.limitate(test_object, ['limited_method'])
+
+        limited_object.arbitrary_method("arg1", "arg2", ["args4", "and 5"], name="hello")
+        assert not take_mocker.called
+        assert (test_object.arbitrary_method.call_args ==
+                mock.call("arg1", "arg2", ["args4", "and 5"], name="hello"))
+
+        test_object.reset_mock()
+
+        limited_object.limited_method("arg1", "arg2", ["args4", "and 5"], name="hello")
+        assert take_mocker.called
+        assert (test_object.limited_method.call_args ==
+                mock.call("arg1", "arg2", ["args4", "and 5"], name="hello"))
 
     @pytest.mark.xfail
     def test_wrapper_looks_like_object(self):

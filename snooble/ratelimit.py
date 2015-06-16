@@ -19,7 +19,7 @@ class _LimitationObject(object):
             @functools.wraps(attribute)
             def wrapper(*args, **kwargs):
                 self.__ratelimiter.take()
-                return attribute()
+                return attribute(*args, **kwargs)
             return wrapper
 
         else:

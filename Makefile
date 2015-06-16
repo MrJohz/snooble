@@ -1,5 +1,6 @@
 all:
 	@echo "test         - run test commands"
+	@echo "test-cruel   - run test commands with pep8 and flakes"
 	@echo "clean        - get rid of spare files"
 
 test:
@@ -11,4 +12,4 @@ test-cruel:
 clean:
 	rm .coverage
 
-.PHONY: test clean
+.PHONY: all test test-cruel clean
