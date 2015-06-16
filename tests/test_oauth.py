@@ -92,4 +92,3 @@ class TestAuthorization(object):
         assert auth1 == auth2 and auth2 == auth1
         assert auth1 != auth3
         assert auth1 != auth4
-

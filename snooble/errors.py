@@ -1,6 +1,7 @@
 class SnoobleError(ValueError):
     pass
 
+
 class RedditError(SnoobleError):
 
     def __init__(self, arg, response=None):
