@@ -1,0 +1,2 @@
+class SnoobleError(ValueError):
+    pass

@@ -107,6 +107,18 @@ class TestRatelimit(object):
         assert big_bucket.current_bucket == 0
         assert len(timer_mocker.call_args_list) == 3
 
+    def test_equality(self):
+
+        limit1 = ratelimit.RateLimiter(rate=60, per=60, bursty=False)
+        limit2 = ratelimit.RateLimiter(rate=60, per=60, bursty=True)
+        limit3 = ratelimit.RateLimiter(rate=25, per=50, bursty=True)
+        limit4 = ratelimit.RateLimiter(rate=60, per=60, bursty=False)
+
+        assert limit1 == limit4 and limit4 == limit1
+        assert limit1 != limit2
+        assert limit1 != limit3
+        assert limit1 != (60, 60)
+
 
 class TestLimitation(object):
 
