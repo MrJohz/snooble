@@ -12,6 +12,7 @@ class OAuth(object):
     def __init__(self, kind, scopes, **kwargs):
         self.kind = kind
         self.scopes = scopes
+        self.authorization = None
 
         if self.kind == SCRIPT_KIND:
             self.client_id = utils.fetch_parameter(kwargs, 'client_id')
@@ -40,6 +41,11 @@ class OAuth(object):
 
         else:
             raise ValueError("Invalid oauth kind {kind}".format(kind=self.kind))
+
+    @property
+    def authorized(self):
+        return self.authorization is not None
+
 
 
 class Authorization(object):

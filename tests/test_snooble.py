@@ -13,7 +13,7 @@ class TestSnooble(object):
         snoo = snooble.Snooble('my-test-useragent')
         assert snoo.useragent == 'my-test-useragent'
         assert snoo._limiter == snooble.ratelimit.RateLimiter(60, 60, False)
-        assert snoo._authorized is False
+        assert snoo.authorized is False
         assert snoo.domain.www == snooble.WWW_DOMAIN
         assert snoo.domain.auth == snooble.AUTH_DOMAIN
 
@@ -26,8 +26,34 @@ class TestSnooble(object):
         with pytest.raises(snooble.errors.SnoobleError):
             snoo.get('/url')
 
+    def test_oauth_returns_old_oauth(self):
+        snoo = snooble.Snooble('my-test-useragent')
+        original_auth = snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
+           client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
+           username='my-username', password='my-password')
+        assert original_auth is None
+
+        new_auth = snoo.oauth()
+        assert new_auth.scopes == ['read']
+        assert new_auth.client_id == 'ThisIsTheClientID'
+        assert new_auth.secret_id == 'ThisIsTheSecretID'
+        assert new_auth.username == 'my-username'
+        assert new_auth.password == 'my-password'
+
+        final_auth = snooble.oauth.OAuth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
+           client_id='AnotherClientID', secret_id='AnotherSecretID',
+           username='my-other-username', password='my-other-password')
+
+        snoo.oauth(final_auth)
+        assert snoo.oauth() is final_auth
+
+    def test_authorize_cannot_be_called_without_credentials(self):
+        snoo = snooble.Snooble('my-test-useragent')
+        with pytest.raises(snooble.errors.SnoobleError):
+            snoo.authorize()
+
     @responses.activate
-    def test_oauth_as_script_successful(self, monkeypatch):
+    def test_authorize_as_script_successful(self, monkeypatch):
         time_mock = mock.Mock(return_value=1234567890)
         monkeypatch.setattr('time.time', time_mock)
 
@@ -43,6 +69,8 @@ class TestSnooble(object):
                    client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
                    username='my-username', password='my-password')
 
+        snoo.authorize()
+
         assert len(responses.calls) == 1
         response = responses.calls[0].request
         assert response.headers['User-Agent'] == 'my-test-useragent'
@@ -53,11 +81,11 @@ class TestSnooble(object):
         assert 'password=my-password' in response.body
 
         assert snoo._authorized is True
-        assert snoo.authorization == \
+        assert snoo.oauth().authorization == \
             snooble.oauth.Authorization(token_type='bearer', recieved=1234567890,
                                         length=3600, token='fhTdafZI-0ClEzzYORfBSCR7x3M')
 
-    def test_oauth_as_script_failing(self):
+    def test_authorize_as_script_failing(self):
         with responses.RequestsMock() as rsps:
             rsps.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
                           body=json.dumps({'error': 401}), status=401)
@@ -69,8 +97,10 @@ class TestSnooble(object):
                            client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
                            username='my-username', password='my-password')
 
-            assert snoo.authorization is None
-            assert snoo._authorized is False
+                snoo.authorize()
+
+            assert snoo.oauth().authorization is None
+            assert snoo.authorized is False
 
         with responses.RequestsMock() as rsps:
             rsps.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
@@ -83,5 +113,7 @@ class TestSnooble(object):
                            client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
                            username='my-username', password='my-password')
 
-            assert snoo.authorization is None
-            assert snoo._authorized is False
+                snoo.authorize()
+
+            assert snoo.oauth().authorization is None
+            assert snoo.authorized is False
