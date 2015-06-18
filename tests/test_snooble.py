@@ -5,6 +5,7 @@ import responses
 import json
 from base64 import b64encode
 from unittest import mock
+from urllib.parse import quote_plus
 
 
 class TestSnooble(object):
@@ -23,7 +24,7 @@ class TestSnooble(object):
         assert snoo.domain.www == 'http://my-fake-reddit.com'
         assert snoo.domain.auth == 'http://oauth.my-fake-reddit.com'
 
-        with pytest.raises(snooble.errors.SnoobleError):
+        with pytest.raises(ValueError):
             snoo.get('/url')
 
     def test_oauth_returns_old_oauth(self):
@@ -49,7 +50,7 @@ class TestSnooble(object):
 
     def test_authorize_cannot_be_called_without_credentials(self):
         snoo = snooble.Snooble('my-test-useragent')
-        with pytest.raises(snooble.errors.SnoobleError):
+        with pytest.raises(ValueError):
             snoo.authorize()
 
     @responses.activate
@@ -107,13 +108,31 @@ class TestSnooble(object):
                           body=json.dumps({'error': 404}), status=404)
 
             snoo = snooble.Snooble('my-test-useragent')
+            snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
+                       client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
+                       username='my-username', password='my-password')
 
             with pytest.raises(snooble.errors.RedditError):
-                snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
-                           client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
-                           username='my-username', password='my-password')
-
                 snoo.authorize()
 
             assert snoo.oauth().authorization is None
             assert snoo.authorized is False
+
+    def test_auth_url(self):
+        snoo = snooble.Snooble('my-test-useragent')
+        snoo.oauth(snooble.oauth.EXPLICIT_KIND, scopes=['read'],
+            client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
+            redirect_uri='https://my.redirect.site.com')
+
+        url = snoo.auth_url('my-top-secret-secret')
+        assert 'client_id=ThisIsTheClientID' in url
+        assert 'redirect_uri=' + quote_plus('https://my.redirect.site.com') in url
+        assert 'duration=temporary' in url
+        assert 'state=my-top-secret-secret' in url
+        assert 'response_type=code' in url
+
+
+    @pytest.mark.xfail
+    @responses.activate
+    def test_authorize_explicit(self):
+        assert False

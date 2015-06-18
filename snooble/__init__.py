@@ -1,6 +1,6 @@
 import collections
-import urllib
 import time
+from urllib import parse as urlp
 
 import requests
 
@@ -44,13 +44,38 @@ class Snooble(object):
         elif not isinstance(auth, oauth.OAuth):
             auth = oauth.OAuth(auth, *args, **kwargs)
 
-        self._authorized = False
         old_auth, self._auth = self._auth, auth
         return old_auth
 
+    def auth_url(self, state):
+        if self._auth is None:
+            raise ValueError("Cannot create auth url witout credentials")
+        if self._auth.kind not in (oauth.EXPLICIT_KIND, oauth.IMPLICIT_KIND):
+            raise ValueError("Selected auth kind does not use authorization URL")
+
+        response_type = 'code' if self._auth.kind == oauth.EXPLICIT_KIND else 'token'
+
+        options = {
+            "client_id": self._auth.client_id,
+            "response_type": response_type,
+            "state": state,
+            "redirect_uri": self._auth.redirect_uri,
+            "scope": ",".join(self._auth.scopes)
+        }
+
+        if self._auth.kind == oauth.EXPLICIT_KIND:
+            options['duration'] = self._auth.duration
+
+        base = urlp.urljoin(self.domain.www, 'api/v1/authorize')
+        if self._auth.mobile:
+            base += ".compact"
+        base += "?" + "&".join("{k}={v}".format(k=k, v=urlp.quote_plus(v))
+                                for (k, v) in options.items())
+        return base
+
     def authorize(self):
         if self._auth is None:
-            raise errors.SnoobleError("Attempting authorization without credentials")
+            raise ValueError("Attempting authorization without credentials")
 
         auth = self._auth
 
@@ -58,7 +83,7 @@ class Snooble(object):
             client_auth = requests.auth.HTTPBasicAuth(auth.client_id, auth.secret_id)
             post_data = {"scope": ",".join(auth.scopes), "grant_type": "password",
                 "username": auth.username, "password": auth.password}
-            url = urllib.parse.urljoin(self.domain.www, 'api/v1/access_token')
+            url = urlp.urljoin(self.domain.www, 'api/v1/access_token')
             response = self._limited_session.post(url, auth=client_auth, data=post_data)
 
             if response.status_code != 200:
@@ -83,4 +108,4 @@ class Snooble(object):
 
     def get(self, url):
         if not self.authorized:
-            raise errors.SnoobleError("Snooble.auth must be called before making requests")
+            raise ValueError("Snooble.auth must be called before making requests")
