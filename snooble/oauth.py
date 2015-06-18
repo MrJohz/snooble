@@ -3,7 +3,7 @@ from . import utils
 SCRIPT_KIND = "script"
 EXPLICIT_KIND = "explicit"
 IMPLICIT_KIND = "implicit"
-APPLICATION_IMPLICIT_KIND = "application/implicit"
+APPLICATION_INSTALLED_KIND = "application/installed"
 APPLICATION_EXPLICIT_KIND = "application/explicit"
 
 
@@ -36,7 +36,7 @@ class OAuth(object):
             self.redirect_uri = utils.fetch_parameter(kwargs, 'redirect_uri')
             self.mobile = kwargs.pop('mobile', False)
 
-        elif self.kind == APPLICATION_IMPLICIT_KIND:
+        elif self.kind == APPLICATION_INSTALLED_KIND:
             self.client_id = utils.fetch_parameter(kwargs, 'client_id')
 
         else:

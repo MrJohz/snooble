@@ -29,8 +29,10 @@ class Snooble(object):
         self.useragent = useragent
         self.auth_domain, self.www_domain = auth_domain, www_domain
 
-        self._limiter = ratelimit if isinstance(ratelimit, RateLimiter) else \
-                        RateLimiter(*ratelimit, bursty=bursty)
+        if isinstance(ratelimit, RateLimiter):
+            self._limiter = ratelimit
+        else:
+            self._limiter = RateLimiter(*ratelimit, bursty=bursty)
 
         self._session = requests.Session()
         self._session.headers.update({"User-Agent": useragent})
@@ -69,7 +71,7 @@ class Snooble(object):
         if self._auth.mobile:
             base += ".compact"
         base += "?" + "&".join("{k}={v}".format(k=k, v=urlp.quote_plus(v))
-                                for (k, v) in options.items())
+                               for (k, v) in options.items())
         return base
 
     def authorize(self, code=None, expires=3600):
@@ -115,10 +117,25 @@ class Snooble(object):
                                     token=r['access_token'], length=r['expires_in'])
 
         elif auth.kind == oauth.IMPLICIT_KIND:
-
             auth.authorization = \
                 oauth.Authorization(token_type='bearer', recieved=time.time(),
                                     token=code, length=expires)
+
+        elif auth.kind == oauth.APPLICATION_EXPLICIT_KIND:
+            client_auth = requests.auth.HTTPBasicAuth(auth.client_id, auth.secret_id)
+            post_data = {"grant_type": "client_credentials"}
+            url = urlp.urljoin(self.domain.www, 'api/v1/access_token')
+            response = self._limited_session.post(url, auth=client_auth, data=post_data)
+
+            if response.status_code != 200:
+                m = "Authorization failed (are all your details correct?)"
+                raise errors.RedditError(m, response=response)
+
+            r = response.json()
+
+            auth.authorization = \
+                oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
+                                    token=r['access_token'], length=r['expires_in'])
 
     def get(self, url):
         if not self.authorized:
