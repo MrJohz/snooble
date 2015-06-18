@@ -24,7 +24,6 @@ class Snooble(object):
     def authorized(self):
         return self._auth is not None and self._auth.authorized
 
-
     def __init__(self, useragent, bursty=False, ratelimit=(60, 60),
                  auth_domain=AUTH_DOMAIN, www_domain=WWW_DOMAIN):
         self.useragent = useragent
@@ -73,7 +72,7 @@ class Snooble(object):
                                 for (k, v) in options.items())
         return base
 
-    def authorize(self):
+    def authorize(self, code=None, expires=3600):
         if self._auth is None:
             raise ValueError("Attempting authorization without credentials")
 
@@ -82,29 +81,44 @@ class Snooble(object):
         if auth.kind == oauth.SCRIPT_KIND:
             client_auth = requests.auth.HTTPBasicAuth(auth.client_id, auth.secret_id)
             post_data = {"scope": ",".join(auth.scopes), "grant_type": "password",
-                "username": auth.username, "password": auth.password}
+                         "username": auth.username, "password": auth.password}
             url = urlp.urljoin(self.domain.www, 'api/v1/access_token')
             response = self._limited_session.post(url, auth=client_auth, data=post_data)
 
             if response.status_code != 200:
-                if response.status_code == 401:
-                    m = "Authorization failed (are all your details correct)"
-                    raise errors.RedditError(m, response=response)
-                else:
-                    m = "Unknown authorization error"
-                    raise errors.RedditError(m, response=response)
+                m = "Authorization failed (are all your details correct?)"
+                raise errors.RedditError(m, response=response)
 
             r = response.json()
 
-            self._auth.authorization = \
+            auth.authorization = \
                 oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
                                     token=r['access_token'], length=r['expires_in'])
 
             self._authorized = True
 
-        # elif auth.kind == oauth.EXPLICIT_KIND:
-        #    client_auth = requests.auth.HTTPBasicAuth(auth.client_id, auth.secret_id)
-        #    post_data = {"scope": ",".join(auth.scopes), "grant_type": "explicit"}
+        elif auth.kind == oauth.EXPLICIT_KIND:
+            client_auth = requests.auth.HTTPBasicAuth(auth.client_id, auth.secret_id)
+            post_data = {"grant_type": "authorization_code",
+                         "code": code, "redirect_uri": auth.redirect_uri}
+            url = urlp.urljoin(self.domain.www, 'api/v1/access_token')
+            response = self._limited_session.post(url, auth=client_auth, data=post_data)
+
+            if response.status_code != 200:
+                m = "Authorization failed (are all your details correct?)"
+                raise errors.RedditError(m, response=response)
+
+            r = response.json()
+
+            auth.authorization = \
+                oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
+                                    token=r['access_token'], length=r['expires_in'])
+
+        elif auth.kind == oauth.IMPLICIT_KIND:
+
+            auth.authorization = \
+                oauth.Authorization(token_type='bearer', recieved=time.time(),
+                                    token=code, length=expires)
 
     def get(self, url):
         if not self.authorized:

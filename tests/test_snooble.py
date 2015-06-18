@@ -23,9 +23,7 @@ class TestSnooble(object):
 
         assert snoo.domain.www == 'http://my-fake-reddit.com'
         assert snoo.domain.auth == 'http://oauth.my-fake-reddit.com'
-
-        with pytest.raises(ValueError):
-            snoo.get('/url')
+        assert not snoo.authorized
 
     def test_oauth_returns_old_oauth(self):
         snoo = snooble.Snooble('my-test-useragent')
@@ -53,6 +51,34 @@ class TestSnooble(object):
         with pytest.raises(ValueError):
             snoo.authorize()
 
+    def test_auth_url(self):
+        snoo = snooble.Snooble('my-test-useragent')
+        snoo.oauth(snooble.oauth.EXPLICIT_KIND, scopes=['read'],
+            client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
+            redirect_uri='https://my.site.com')
+
+        url = snoo.auth_url('my-top-secret-secret')
+        assert 'client_id=ThisIsTheClientID' in url
+        assert 'redirect_uri=' + quote_plus('https://my.site.com') in url
+        assert 'duration=temporary' in url
+        assert 'state=my-top-secret-secret' in url
+        assert 'response_type=code' in url
+        assert ".compact" not in url
+
+        snoo.oauth().mobile = True
+        url = snoo.auth_url('secret-with-mobile-url')
+        assert ".compact" in url
+
+        with pytest.raises(ValueError):
+            snooble.Snooble('my-test-useragent').auth_url('without-credentials')
+
+        snoo = snooble.Snooble('my-test-useragent')
+        snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
+                   client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
+                   username='my-username', password='my-password')
+        with pytest.raises(ValueError):
+            snoo.auth_url('with-wrong-auth-kind')
+
     @responses.activate
     def test_authorize_as_script_successful(self, monkeypatch):
         time_mock = mock.Mock(return_value=1234567890)
@@ -61,7 +87,7 @@ class TestSnooble(object):
         responses.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
                       body=json.dumps({'access_token': 'fhTdafZI-0ClEzzYORfBSCR7x3M',
                                        'expires_in': 3600,
-                                       'scope': '*',
+                                       'scope': 'read',
                                        'token_type': 'bearer'}),
                       content_type='application/json')
 
@@ -86,53 +112,72 @@ class TestSnooble(object):
             snooble.oauth.Authorization(token_type='bearer', recieved=1234567890,
                                         length=3600, token='fhTdafZI-0ClEzzYORfBSCR7x3M')
 
+    @responses.activate
     def test_authorize_as_script_failing(self):
-        with responses.RequestsMock() as rsps:
-            rsps.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
-                          body=json.dumps({'error': 401}), status=401)
+        responses.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
+                      body=json.dumps({'error': 401}), status=401)
 
-            snoo = snooble.Snooble('my-test-useragent')
+        snoo = snooble.Snooble('my-test-useragent')
+        snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
+                   client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
+                   username='my-username', password='my-password')
 
-            with pytest.raises(snooble.errors.RedditError):
-                snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
-                           client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
-                           username='my-username', password='my-password')
+        with pytest.raises(snooble.errors.RedditError):
+            snoo.authorize()
 
-                snoo.authorize()
+        assert snoo.oauth().authorization is None
+        assert snoo.authorized is False
 
-            assert snoo.oauth().authorization is None
-            assert snoo.authorized is False
+    @responses.activate
+    def test_authorize_explicit(self):
+        responses.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
+                      body=json.dumps({'access_token': 'fhTdafZI-0ClEzzYORfBSCR7x3M',
+                                       'expires_in': 3600,
+                                       'scope': '*',
+                                       'token_type': 'bearer',
+                                       'scope': 'read'}),
+                      content_type='application/json')
 
-        with responses.RequestsMock() as rsps:
-            rsps.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
-                          body=json.dumps({'error': 404}), status=404)
-
-            snoo = snooble.Snooble('my-test-useragent')
-            snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
-                       client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
-                       username='my-username', password='my-password')
-
-            with pytest.raises(snooble.errors.RedditError):
-                snoo.authorize()
-
-            assert snoo.oauth().authorization is None
-            assert snoo.authorized is False
-
-    def test_auth_url(self):
         snoo = snooble.Snooble('my-test-useragent')
         snoo.oauth(snooble.oauth.EXPLICIT_KIND, scopes=['read'],
             client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
-            redirect_uri='https://my.redirect.site.com')
+            redirect_uri='https://my.site.com')
 
-        url = snoo.auth_url('my-top-secret-secret')
-        assert 'client_id=ThisIsTheClientID' in url
-        assert 'redirect_uri=' + quote_plus('https://my.redirect.site.com') in url
-        assert 'duration=temporary' in url
-        assert 'state=my-top-secret-secret' in url
-        assert 'response_type=code' in url
+        snoo.authorize('reddit-magic-token')
+        assert len(responses.calls) == 1
+        request = responses.calls[0].request
+        assert request.headers['User-Agent'] == 'my-test-useragent'
+        assert request.headers['Authorization'] == \
+               'Basic ' + b64encode(b'ThisIsTheClientID:ThisIsTheSecretID').decode('utf-8')
+        assert 'grant_type=authorization_code' in request.body
+        assert 'code=reddit-magic-token' in request.body
+        assert 'redirect_uri=' + quote_plus('https://my.site.com') in request.body
 
+        assert snoo.authorized
 
-    @pytest.mark.xfail
     @responses.activate
-    def test_authorize_explicit(self):
-        assert False
+    def test_authorize_as_explicit_failing(self):
+        responses.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
+                      body=json.dumps({'error': 401}), status=401)
+
+        snoo = snooble.Snooble('my-test-useragent')
+
+        snoo.oauth(snooble.oauth.EXPLICIT_KIND, scopes=['read'],
+                   client_id='ThisIsTheClientID', secret_id='ThisIsTheSecretID',
+                   redirect_uri='https://my.site.com')
+
+        with pytest.raises(snooble.errors.RedditError):
+            snoo.authorize('reddit-magic-token')
+
+        assert not snoo.authorized
+
+    def test_authorize_as_implicit(self):
+        snoo = snooble.Snooble('my-test-useragent')
+        snoo.oauth(snooble.oauth.IMPLICIT_KIND, scopes=['read'],
+                   client_id='ThisIsTheClientID', redirect_uri='https://my.site.com')
+        snoo.authorize('reddit-magic-token')
+
+        assert snoo.authorized
+
+    def test_authorize_as_explicit_app(self):
+        pass

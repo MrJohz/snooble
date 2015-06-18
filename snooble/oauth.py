@@ -47,7 +47,6 @@ class OAuth(object):
         return self.authorization is not None
 
 
-
 class Authorization(object):
 
     __slots__ = ['token_type', 'token', 'recieved', 'length']
