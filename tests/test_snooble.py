@@ -14,16 +14,9 @@ class TestSnooble(object):
         snoo = snooble.Snooble('my-test-useragent')
         assert snoo.useragent == 'my-test-useragent'
         assert snoo._limiter == snooble.ratelimit.RateLimiter(60, 60, False)
-        assert snoo.authorized is False
+        assert not snoo.authorized
         assert snoo.domain.www == snooble.WWW_DOMAIN
         assert snoo.domain.auth == snooble.AUTH_DOMAIN
-
-        snoo.www_domain = 'http://my-fake-reddit.com'
-        snoo.auth_domain = 'http://oauth.my-fake-reddit.com'
-
-        assert snoo.domain.www == 'http://my-fake-reddit.com'
-        assert snoo.domain.auth == 'http://oauth.my-fake-reddit.com'
-        assert not snoo.authorized
 
         ratelimit = snooble.ratelimit.RateLimiter(60, 60, True)
         snoo2 = snooble.Snooble('my-test-useragent', ratelimit=ratelimit)
@@ -33,6 +26,23 @@ class TestSnooble(object):
                                    scopes=['read'], client_id='ThisIsTheClientID')
         snoo3 = snooble.Snooble('my-test-useragent', auth=auth)
         assert snoo3._auth is auth
+
+    def test_domain_property(self):
+        snoo = snooble.Snooble('my-test-useragent',
+                               www_domain='www.domain', auth_domain='auth.domain')
+        assert snoo.domain.www == 'www.domain'
+        assert snoo.domain.auth == 'auth.domain'
+
+        snoo.www_domain = 'http://my-fake-reddit.com'
+        snoo.auth_domain = 'http://oauth.my-fake-reddit.com'
+
+        assert snoo.domain.www == 'http://my-fake-reddit.com'
+        assert snoo.domain.auth == 'http://oauth.my-fake-reddit.com'
+
+        snoo.domain = ('www.domain.again', 'auth.domain.again')
+        assert snoo.domain.www == 'www.domain.again'
+        assert snoo.domain.auth == 'auth.domain.again'
+
 
     def test_oauth_returns_old_oauth(self):
         snoo = snooble.Snooble('my-test-useragent')

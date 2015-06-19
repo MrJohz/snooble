@@ -20,14 +20,18 @@ class Snooble(object):
     def domain(self):
         return Domain(auth=self.auth_domain, www=self.www_domain)
 
+    @domain.setter
+    def domain(self, tup):
+        self.www_domain, self.auth_domain = tup
+
     @property
     def authorized(self):
         return self._auth is not None and self._auth.authorized
 
     def __init__(self, useragent, bursty=False, ratelimit=(60, 60),
-                 auth_domain=AUTH_DOMAIN, www_domain=WWW_DOMAIN, auth=None):
+                 www_domain=WWW_DOMAIN, auth_domain=AUTH_DOMAIN, auth=None):
         self.useragent = useragent
-        self.auth_domain, self.www_domain = auth_domain, www_domain
+        self.www_domain, self.auth_domain = www_domain, auth_domain
 
         if isinstance(ratelimit, RateLimiter):
             self._limiter = ratelimit
