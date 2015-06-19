@@ -29,7 +29,8 @@ class Snooble(object):
         return self._auth is not None and self._auth.authorized
 
     def __init__(self, useragent, bursty=False, ratelimit=(60, 60),
-                 www_domain=WWW_DOMAIN, auth_domain=AUTH_DOMAIN, auth=None):
+                 www_domain=WWW_DOMAIN, auth_domain=AUTH_DOMAIN, auth=None,
+                 encode_all=False):
         self.useragent = useragent
         self.www_domain, self.auth_domain = www_domain, auth_domain
 
@@ -95,9 +96,11 @@ class Snooble(object):
 
             if response.status_code != 200:
                 m = "Authorization failed (are all your details correct?)"
+                print(response.json())
                 raise errors.RedditError(m, response=response)
 
             r = response.json()
+            print(r)
 
             auth.authorization = \
                 oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
@@ -166,3 +169,10 @@ class Snooble(object):
     def get(self, url):
         if not self.authorized:
             raise ValueError("Snooble.auth must be called before making requests")
+
+        else:
+            headers = {"Authorization": " ".join((self._auth.authorization.token_type,
+                                                  self._auth.authorization.token))}
+            url = urlp.urljoin(self.domain.auth, url)
+            response = self._limited_session.get(url, headers=headers)
+            return response.json()
