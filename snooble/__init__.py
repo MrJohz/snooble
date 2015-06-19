@@ -25,7 +25,7 @@ class Snooble(object):
         return self._auth is not None and self._auth.authorized
 
     def __init__(self, useragent, bursty=False, ratelimit=(60, 60),
-                 auth_domain=AUTH_DOMAIN, www_domain=WWW_DOMAIN):
+                 auth_domain=AUTH_DOMAIN, www_domain=WWW_DOMAIN, auth=None):
         self.useragent = useragent
         self.auth_domain, self.www_domain = auth_domain, www_domain
 
@@ -38,6 +38,8 @@ class Snooble(object):
         self._session.headers.update({"User-Agent": useragent})
         self._limited_session = self._limiter.limitate(self._session, ['get', 'post'])
         self._auth = None
+        if auth is not None:
+            self.oauth(auth)
 
     def oauth(self, auth=None, *args, **kwargs):
         if auth is None and not len(args) and not len(kwargs):
@@ -153,6 +155,9 @@ class Snooble(object):
             auth.authorization = \
                 oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
                                     token=r['access_token'], length=r['expires_in'])
+
+        else:
+            raise ValueError("Unrecognised auth kind {kind}".format(kind=auth.kind))
 
     def get(self, url):
         if not self.authorized:

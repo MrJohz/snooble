@@ -58,9 +58,5 @@ class Authorization(object):
 
     def __eq__(self, other):
         if type(self) == type(other):
-            for elem in self.__slots__:
-                if getattr(self, elem) != getattr(other, elem):
-                    return False
-            else:
-                return True
+            return self.__dict__ == other.__dict__
         return False

@@ -29,6 +29,11 @@ class TestSnooble(object):
         snoo2 = snooble.Snooble('my-test-useragent', ratelimit=ratelimit)
         assert snoo2._limiter is ratelimit
 
+        auth = snooble.oauth.OAuth(snooble.oauth.APPLICATION_INSTALLED_KIND,
+                                   scopes=['read'], client_id='ThisIsTheClientID')
+        snoo3 = snooble.Snooble('my-test-useragent', auth=auth)
+        assert snoo3._auth is auth
+
     def test_oauth_returns_old_oauth(self):
         snoo = snooble.Snooble('my-test-useragent')
         original_auth = snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
@@ -265,3 +270,12 @@ class TestSnooble(object):
             snoo.authorize()
 
         assert not snoo.authorized
+
+    def test_unrecognised_auth_kind(self):
+        auth = snooble.oauth.OAuth(snooble.oauth.APPLICATION_INSTALLED_KIND,
+                                   scopes=['read'], client_id='ThisIsTheClientID')
+        auth.kind = "This kind doesn't exist!"
+
+        snoo = snooble.Snooble('my-test-useragent', auth=auth)
+        with pytest.raises(ValueError):
+            snoo.authorize()
