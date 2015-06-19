@@ -137,6 +137,23 @@ class Snooble(object):
                 oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
                                     token=r['access_token'], length=r['expires_in'])
 
+        elif auth.kind == oauth.APPLICATION_INSTALLED_KIND:
+            client_auth = requests.auth.HTTPBasicAuth(auth.client_id, "")
+            post_data = {"grant_type": "https://oauth.reddit.com/grants/installed_client",
+                         "device_id": auth.device_id}
+            url = urlp.urljoin(self.domain.www, 'api/v1/access_token')
+            response = self._limited_session.post(url, auth=client_auth, data=post_data)
+
+            if response.status_code != 200:
+                m = "Authorization failed (are all your details correct?)"
+                raise errors.RedditError(m, response=response)
+
+            r = response.json()
+
+            auth.authorization = \
+                oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
+                                    token=r['access_token'], length=r['expires_in'])
+
     def get(self, url):
         if not self.authorized:
             raise ValueError("Snooble.auth must be called before making requests")

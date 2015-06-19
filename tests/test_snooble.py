@@ -223,3 +223,45 @@ class TestSnooble(object):
             snoo.authorize()
 
         assert not snoo.authorized
+
+    @responses.activate
+    def test_authorize_as_installed_app(self):
+        responses.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
+                      body=json.dumps({'access_token': 'fhTdafZI-0ClEzzYORfBSCR7x3M',
+                                       'expires_in': 3600,
+                                       'scope': '*',
+                                       'token_type': 'bearer',
+                                       'scope': 'read'}),
+                      content_type='application/json')
+
+        snoo = snooble.Snooble('my-test-useragent')
+        snoo.oauth(snooble.oauth.APPLICATION_INSTALLED_KIND, scopes=['read'],
+                   client_id='ThisIsTheClientID')
+
+        snoo.authorize()
+
+        assert len(responses.calls) == 1
+
+        request = responses.calls[0].request
+        assert request.headers['User-Agent'] == 'my-test-useragent'
+        assert request.headers['Authorization'] == \
+            'Basic ' + b64encode(b'ThisIsTheClientID:').decode('utf-8')
+        assert 'grant_type=' + quote_plus('https://oauth.reddit.com/grants/installed_client') \
+            in request.body
+
+        assert snoo.authorized
+
+    @responses.activate
+    def test_authorize_as_installed_app_failing(self):
+        responses.add(responses.POST, 'https://www.reddit.com/api/v1/access_token',
+                      body=json.dumps({'error': 401}), status=401)
+
+        snoo = snooble.Snooble('my-test-useragent')
+
+        snoo.oauth(snooble.oauth.APPLICATION_INSTALLED_KIND, scopes=['read'],
+                   client_id='ThisIsTheClientID')
+
+        with pytest.raises(snooble.errors.RedditError):
+            snoo.authorize()
+
+        assert not snoo.authorized

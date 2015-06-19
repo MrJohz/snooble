@@ -38,6 +38,7 @@ class OAuth(object):
 
         elif self.kind == APPLICATION_INSTALLED_KIND:
             self.client_id = utils.fetch_parameter(kwargs, 'client_id')
+            self.device_id = kwargs.pop('device_id', 'DO_NOT_TRACK_THIS_USER')
 
         else:
             raise ValueError("Invalid oauth kind {kind}".format(kind=self.kind))
@@ -48,8 +49,6 @@ class OAuth(object):
 
 
 class Authorization(object):
-
-    __slots__ = ['token_type', 'token', 'recieved', 'length']
 
     def __init__(self, token_type, token, recieved, length):
         self.token_type = token_type
