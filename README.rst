@@ -9,4 +9,7 @@ TODO:
 
 - Clean up Snooble.authorize method
 - Allow better error handling in method
+
     - Need to account for 200 errors.
+
+- OAuth classes should probably implement some serialisation methods.
