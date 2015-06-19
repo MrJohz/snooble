@@ -43,7 +43,6 @@ class TestSnooble(object):
         assert snoo.domain.www == 'www.domain.again'
         assert snoo.domain.auth == 'auth.domain.again'
 
-
     def test_oauth_returns_old_oauth(self):
         snoo = snooble.Snooble('my-test-useragent')
         original_auth = snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=['read'],
@@ -97,6 +96,15 @@ class TestSnooble(object):
                    username='my-username', password='my-password')
         with pytest.raises(ValueError):
             snoo.auth_url('with-wrong-auth-kind')
+
+        snoo.oauth(snooble.oauth.IMPLICIT_KIND, scopes=['read'],
+                   client_id='ThisIsTheClientID', redirect_uri='https://my.site.com')
+        url = snoo.auth_url('my-top-secret-secret')
+        assert 'client_id=ThisIsTheClientID' in url
+        assert 'redirect_uri=' + quote_plus('https://my.site.com') in url
+        assert 'state=my-top-secret-secret' in url
+        assert 'response_type=token' in url
+        assert ".compact" not in url
 
     @responses.activate
     def test_authorize_as_script_successful(self, monkeypatch):
