@@ -3,6 +3,16 @@ python:
   - "3.4"
   - "3.3"
 
+env:
+  matrix:  # Test once with pep8/flakes, test once without
+    - TEST_CRUEL="true"
+    - TEST_CRUEL="false"
+
+matrix:
+  allow_failures:
+    # pep8/flakes test can fail and still be considered a "pass".
+    - env: TEST_CRUEL="true"
+
 cache:
   directories:
     - $HOME/.cache/pip
@@ -12,7 +22,8 @@ install:
   - "pip install -r dev-requirements.txt"
 
 script:
-  - "make test"
+  - if [ $TEST_CRUEL = "true" ] ; then "make test-cruel"; fi
+  - if [ $TEST_CRUEL = "false" ] ; then "make test"; fi
 
 after_success:
   - "coveralls --config_file=pytest.ini"
