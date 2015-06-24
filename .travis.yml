@@ -5,8 +5,8 @@ python:
 
 env:
   matrix:  # Test once with pep8/flakes, test once without
-    - TEST_CRUEL="true"
     - TEST_CRUEL="false"
+    - TEST_CRUEL="true"
 
 matrix:
   allow_failures:
@@ -22,8 +22,8 @@ install:
   - "pip install -r dev-requirements.txt"
 
 script:
-  - if [ $TEST_CRUEL = "true" ] ; then "make test-cruel"; fi
-  - if [ $TEST_CRUEL = "false" ] ; then "make test"; fi
+  - if [ $TEST_CRUEL = "true" ] ; then make "test-cruel"; fi
+  - if [ $TEST_CRUEL = "false" ] ; then make "test"; fi
 
 after_success:
   - "coveralls --config_file=pytest.ini"
