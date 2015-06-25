@@ -59,49 +59,43 @@ class Authorization(object):
         return False
 
 
-def _authorize_script(snoo, auth, session, code):
-    client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
-    post_data = {"scope": ",".join(auth.scopes), "grant_type": "password",
-                 "username": auth.username, "password": auth.password}
-    url = urljoin(snoo.domain.www, 'api/v1/access_token')
+class AUTHORIZATION_METHODS(utils.CallbackClass):
 
-    return session.post(url, auth=client_auth, data=post_data)
+    @utils.CallbackClass.key(SCRIPT_KIND)
+    def authorize_script(snoo, auth, session, code):
+        client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
+        post_data = {"scope": ",".join(auth.scopes), "grant_type": "password",
+                     "username": auth.username, "password": auth.password}
+        url = urljoin(snoo.domain.www, 'api/v1/access_token')
 
+        return session.post(url, auth=client_auth, data=post_data)
 
-def _authorize_explicit(snoo, auth, session, code):
-    client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
-    post_data = {"grant_type": "authorization_code", "code": code,
-                 "redirect_uri": auth.redirect_uri}
-    url = urljoin(snoo.domain.www, 'api/v1/access_token')
+    @utils.CallbackClass.key(EXPLICIT_KIND)
+    def authorize_explicit(snoo, auth, session, code):
+        client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
+        post_data = {"grant_type": "authorization_code", "code": code,
+                     "redirect_uri": auth.redirect_uri}
+        url = urljoin(snoo.domain.www, 'api/v1/access_token')
 
-    return session.post(url, auth=client_auth, data=post_data)
+        return session.post(url, auth=client_auth, data=post_data)
 
+    @utils.CallbackClass.key(IMPLICIT_KIND)
+    def authorize_implicit(snoo, auth, session, code):
+        return None
 
-def _authorize_implicit(snoo, auth, session, code):
-    return None
+    @utils.CallbackClass.key(APPLICATION_EXPLICIT_KIND)
+    def authorize_application_explicit(snoo, auth, session, code):
+        client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
+        post_data = {"grant_type": "client_credentials"}
+        url = urljoin(snoo.domain.www, 'api/v1/access_token')
 
+        return session.post(url, auth=client_auth, data=post_data)
 
-def _authorize_application_explicit(snoo, auth, session, code):
-    client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
-    post_data = {"grant_type": "client_credentials"}
-    url = urljoin(snoo.domain.www, 'api/v1/access_token')
+    @utils.CallbackClass.key(APPLICATION_INSTALLED_KIND)
+    def authorize_application_implicit(snoo, auth, session, code):
+        client_auth = HTTPBasicAuth(auth.client_id, '')
+        post_data = {"grant_type": "https://oauth.reddit.com/grants/installed_client",
+                     "device_id": auth.device_id}
+        url = urljoin(snoo.domain.www, 'api/v1/access_token')
 
-    return session.post(url, auth=client_auth, data=post_data)
-
-
-def _authorize_application_implicit(snoo, auth, session, code):
-    client_auth = HTTPBasicAuth(auth.client_id, '')
-    post_data = {"grant_type": "https://oauth.reddit.com/grants/installed_client",
-                 "device_id": auth.device_id}
-    url = urljoin(snoo.domain.www, 'api/v1/access_token')
-
-    return session.post(url, auth=client_auth, data=post_data)
-
-
-AUTHORIZATION_METHODS = {
-    SCRIPT_KIND: _authorize_script,
-    EXPLICIT_KIND: _authorize_explicit,
-    IMPLICIT_KIND: _authorize_implicit,
-    APPLICATION_EXPLICIT_KIND: _authorize_application_explicit,
-    APPLICATION_INSTALLED_KIND: _authorize_application_implicit
-}
+        return session.post(url, auth=client_auth, data=post_data)

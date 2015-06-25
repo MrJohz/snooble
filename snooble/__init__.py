@@ -87,7 +87,7 @@ class Snooble(object):
         elif self._auth.kind not in oauth.ALL_KINDS:
             raise ValueError("Unrecognised auth kind {k}".format(k=self._auth.kind))
 
-        create_auth_request = oauth.AUTHORIZATION_METHODS[self._auth.kind]
+        create_auth_request = oauth.AUTHORIZATION_METHODS(self._auth.kind)
         response = create_auth_request(self, self._auth, self._limited_session, code)
 
         if response is None and self._auth.kind == oauth.IMPLICIT_KIND:
