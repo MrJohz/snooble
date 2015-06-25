@@ -6,6 +6,8 @@ IMPLICIT_KIND = "implicit"
 APPLICATION_INSTALLED_KIND = "application/installed"
 APPLICATION_EXPLICIT_KIND = "application/explicit"
 
+ALL_SCOPES = ()
+
 
 class OAuth(object):
 

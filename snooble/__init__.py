@@ -4,7 +4,7 @@ from urllib import parse as urlp
 
 import requests
 
-from . import oauth, errors
+from . import oauth, errors, responses
 from .ratelimit import RateLimiter
 
 
@@ -96,11 +96,9 @@ class Snooble(object):
 
             if response.status_code != 200:
                 m = "Authorization failed (are all your details correct?)"
-                print(response.json())
                 raise errors.RedditError(m, response=response)
 
             r = response.json()
-            print(r)
 
             auth.authorization = \
                 oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
@@ -166,13 +164,13 @@ class Snooble(object):
         else:
             raise ValueError("Unrecognised auth kind {kind}".format(kind=auth.kind))
 
-    def get(self, url):
+    def get(self, url, **kwargs):
         if not self.authorized:
-            raise ValueError("Snooble.auth must be called before making requests")
+            raise ValueError("Snooble.authorize must be called before making requests")
 
         else:
             headers = {"Authorization": " ".join((self._auth.authorization.token_type,
                                                   self._auth.authorization.token))}
             url = urlp.urljoin(self.domain.auth, url)
-            response = self._limited_session.get(url, headers=headers)
-            return response.json()
+            response = self._limited_session.get(url, headers=headers, params=kwargs)
+            return responses.create_response(response.json())

@@ -12,4 +12,7 @@ test-cruel:
 clean:
 	rm .coverage
 
-.PHONY: all test test-cruel clean
+clean-cassettes:
+	rm -rf tests/cassettes
+
+.PHONY: all test test-cruel clean clean-cassettes

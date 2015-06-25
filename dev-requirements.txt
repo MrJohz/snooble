@@ -5,3 +5,4 @@ pytest-cov==1.8.1
 coverage==3.7.1
 python-coveralls==2.5.0
 responses==0.4.0
+-e git+git@github.com:kevin1024/vcrpy.git@ce7ceb0a1e7bc64e5dd273d8685948bcf36b0ac7#egg=vcrpy
