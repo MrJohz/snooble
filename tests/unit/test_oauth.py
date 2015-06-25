@@ -10,12 +10,6 @@ class TestOAuth(object):
                            secret_id='...', username='...', password='...')
         assert auth.scopes == ['read']
 
-    def test_only_has_correct_attributes(self):
-        auth = oauth.OAuth(oauth.SCRIPT_KIND, scopes=['read'], client_id='...',
-                           secret_id='...', username='...', password='...')
-        with pytest.raises(AttributeError):
-            auth.mobile
-
     def test_lack_of_params(self):
         with pytest.raises(TypeError):
             oauth.OAuth(oauth.SCRIPT_KIND, scopes=['read'])

@@ -20,6 +20,13 @@ most of usable operations such as getting and posting data, and authenticating t
 are defined and implemented here.
 
 
+compat.py
+---------
+I don't want to include six for just a handful of cross-version compatibilities.  I may
+do when I start supporting py2.x versions, but until then this module is capable of
+handling most differences between different Python versions.
+
+
 errors.py
 ---------
 This file contains definitions for any custom error classes that might be used in the
@@ -54,7 +61,7 @@ class to limit access to a requests session without needing to constantly be che
 ratelimit.  It should work generally okay with methods, not so well with attributes.
 
 
-response.py
+responses.py
 -----------
 This file contains the classes that are returned when a Reddit API call is made.  They
 should be as lightweight and simple as possible for most operations (basically just thin

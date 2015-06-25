@@ -10,6 +10,11 @@ def fetch_parameter(kwargs, param):
         raise TypeError('Missing keyword argument {param}'.format(param=param))
 
 
+def assign_parameters(obj, kwargs, params):
+    for param in params:
+        setattr(obj, param, fetch_parameter(kwargs, param))
+
+
 def strlist(list_or_string):
     """Converts a string into a list of strings, returns any other input
 

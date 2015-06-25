@@ -1,0 +1,30 @@
+interactions:
+- request:
+    body: !!binary |
+      Z3JhbnRfdHlwZT1wYXNzd29yZCZzY29wZT0=
+    headers:
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Content-Length: ['73']
+      Content-Type: [application/x-www-form-urlencoded]
+      Cookie: [__cfduid=d5d751399e029f3136bf3c7c635d6fe9d1435238783]
+      User-Agent: [Snooble Integration Testing (/u/MrJohz)]
+    method: POST
+    uri: https://www.reddit.com/api/v1/access_token
+  response:
+    body: {string: '{"error": "invalid_grant"}'}
+    headers:
+      CF-RAY: [1fc10104c27e061c-LHR]
+      Connection: [keep-alive]
+      Content-Length: ['26']
+      Content-Type: [application/json; charset=UTF-8]
+      Date: ['Thu, 25 Jun 2015 13:26:25 GMT']
+      Server: [cloudflare-nginx]
+      X-Moose: [majestic]
+      cache-control: [no-cache]
+      x-content-type-options: [nosniff]
+      x-frame-options: [SAMEORIGIN]
+      x-xss-protection: [1; mode=block]
+    status: {code: 200, message: OK}
+version: 1

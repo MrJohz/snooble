@@ -1,0 +1,47 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Cookie: [__cfduid=d3c46ede077a0bc8a1e70cab2881bffe71435235232]
+      User-Agent: [my-test-useragent]
+    method: GET
+    uri: https://oauth.reddit.com/subreddits/new?limit=1
+  response:
+    body:
+      string: !!binary |
+        H4sIAKXzi1UC/61UwW7bMAz9Fc2HYgWWplnboVixU7eehu2w3ZZCkCU6FiJLhkQHSYv8+0jFdpx2
+        vQ3IQSFFvsfHJz8Xa+tN8VkU321C61fFB1EYhYpCz0UTTK1STWffOUcZXVtnIniK/HkeS/HmpKpU
+        3kOUtllxklNdov8pSqyhAQlelQ64EmMHlE5d2ViUCFuUNTbuiJcLbZK5JVdUyiUusRn46hbXgQEm
+        HQZMY1Pr1E561QDH7u0Gtr8hISdrUGak2GMZSDraFm3wL1igRfe6hw7OqTaBNOAAwUgdmgY8pgnN
+        sIG4uJ0E2q50Vst/YBVnDu/ezWbi1738+fAgZrOzFd5x0NiN0E6l9GVZNGZZDPGWD19hEwhcYBCk
+        rmi72IYESYRKIOSNiirEnCP21tknxaji27aFaJmvII2JpnjPPZWoI1QENI/z8X7wx9sH+Ley3GKu
+        +Mb5RT5njkufzzTHQH2Y80c/JutpNYmR7BMr3QufQxMf9Wsb9vF6ccPF3g/O+rV0qoTJMpXWoaMt
+        SaWR1nlM9KvBqKrK6snOetRTaoTAqCVE3vfiiJld/AJzsDG9J4ikWJx0H/yJN3K0s46gMPt9cX11
+        8/HT9eXl4uKSG8VslYP8ByvOszDWgFRmar2+h+yQZ8l96Nf36Z/o6UgDSxIdabLulOdr5zKT/2i/
+        tzx1fnF4bflxyaRDBJnnbazngXke0j6CMSz/rs1yHuiOXkiJn9qQVH43fpZo4OMuh3n3+0fKqwpz
+        6GQ3JdBAg2r7/V9tRxA+QQUAAA==
+    headers:
+      CF-RAY: [1fc0aa68b2400a84-LHR]
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['589']
+      Content-Type: [application/json; charset=UTF-8]
+      Date: ['Thu, 25 Jun 2015 12:27:17 GMT']
+      Server: [cloudflare-nginx]
+      Vary: [accept-encoding]
+      X-Moose: [majestic]
+      cache-control: ['private, no-cache', no-cache]
+      pragma: [no-cache]
+      x-content-type-options: [nosniff]
+      x-frame-options: [SAMEORIGIN]
+      x-ratelimit-remaining: ['598.0']
+      x-ratelimit-reset: ['163']
+      x-ratelimit-used: ['2']
+      x-reddit-tracking: ['https://pixel.redditmedia.com/pixel/of_destiny.png?v=NOedqf0d42TE2EYo6qtvVUYAdZBhEkSHJXpCLEmdVe%2FnIeu8wJO%2FqBTQVJ1Qm8bd4xROJTRvICE%3D']
+      x-ua-compatible: [IE=edge]
+      x-xss-protection: [1; mode=block]
+    status: {code: 200, message: OK}
+version: 1

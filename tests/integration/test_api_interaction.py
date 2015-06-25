@@ -4,14 +4,10 @@ import pytest
 import vcr
 import os
 
-from pprint import pprint as print
-print('never' if os.environ.get('CI') else 'once')
-print(os.environ)
-
 player = vcr.VCR(
     serializer='yaml',
     record_mode='none' if os.environ.get('CI') else 'once',
-    cassette_library_dir='tests/cassettes',
+    cassette_library_dir='tests/integration/cassettes',
     match_on=['uri', 'method'],
     filter_headers=['Authorization'],
     filter_query_parameters=['username', 'password'],
@@ -22,6 +18,8 @@ if os.environ.get('CI'):
 else:
     ratelimit = snooble.ratelimit.RateLimiter(1, per=2, bursty=False)
 
+UAGENT = 'Snooble Integration Testing (/u/MrJohz)'
+
 
 def env(name, length):
     return os.environ.get('SNOOBLE_TEST_' + name, 'x' * length)
@@ -31,7 +29,7 @@ class TestAPIInteraction(object):
 
     @pytest.fixture
     def snoo(self):
-        snoo = snooble.Snooble('my-test-useragent', ratelimit=ratelimit)
+        snoo = snooble.Snooble(UAGENT, ratelimit=ratelimit)
         snoo.oauth(snooble.oauth.SCRIPT_KIND, scopes=snooble.oauth.ALL_SCOPES,
                    client_id=env('CLIENT_ID', 14), secret_id=env('SECRET_ID', 27),
                    username=env('USERNAME', 10), password=env('PASSWORD', 10))

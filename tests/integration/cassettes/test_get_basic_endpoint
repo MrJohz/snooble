@@ -5,7 +5,7 @@ interactions:
       Accept: ['*/*']
       Accept-Encoding: ['gzip, deflate']
       Connection: [keep-alive]
-      Cookie: [__cfduid=d24ed6431fda8b6822409e2a938230bf11435179606]
+      Cookie: [__cfduid=d3c46ede077a0bc8a1e70cab2881bffe71435235232]
       User-Agent: [my-test-useragent]
     method: GET
     uri: https://oauth.reddit.com/api/v1/me
@@ -17,11 +17,11 @@ interactions:
         mb2XF2/niwfn6hbX8Lnf/rpal/r3tiDpjGfKkdqkSTRGTvWPta1eOePwtZpJwVbwn0Rdg1ch3y6S
         qYomsCbNISwlV84yCXvktx5pCtDxGL7baySNesOfT1nTP54AAAD//wMA3fFPOWABAAA=
     headers:
-      CF-RAY: [1fbb5c46fec70a6c-LHR]
+      CF-RAY: [1fc0aa4fc9d40cdd-LHR]
       Connection: [keep-alive]
       Content-Encoding: [gzip]
       Content-Type: [application/json; charset=UTF-8]
-      Date: ['Wed, 24 Jun 2015 21:00:08 GMT']
+      Date: ['Thu, 25 Jun 2015 12:27:13 GMT']
       Server: [cloudflare-nginx]
       X-Moose: [majestic]
       cache-control: ['private, no-cache', no-cache]
@@ -29,7 +29,7 @@ interactions:
       x-content-type-options: [nosniff]
       x-frame-options: [SAMEORIGIN]
       x-ratelimit-remaining: ['599.0']
-      x-ratelimit-reset: ['592']
+      x-ratelimit-reset: ['167']
       x-ratelimit-used: ['1']
       x-xss-protection: [1; mode=block]
     status: {code: 200, message: OK}
