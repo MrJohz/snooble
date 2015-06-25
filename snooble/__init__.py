@@ -105,7 +105,6 @@ class Snooble(object):
             raise errors.RedditError(m.format(error=error), response=response)
         else:
             r = response.json()
-            import pprint; pprint.pprint(r)
             self._auth.authorization = \
                 oauth.Authorization(token_type=r['token_type'], recieved=time.time(),
                                     token=r['access_token'], length=r['expires_in'])
