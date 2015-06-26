@@ -1,4 +1,5 @@
 from . import utils
+from .utils import cbc
 
 from requests.auth import HTTPBasicAuth
 from urllib.parse import urljoin
@@ -59,9 +60,9 @@ class Authorization(object):
         return False
 
 
-class AUTHORIZATION_METHODS(utils.CallbackClass):
+class AUTHORIZATION_METHODS(cbc.CallbackClass):
 
-    @utils.CallbackClass.key(SCRIPT_KIND)
+    @cbc.CallbackClass.key(SCRIPT_KIND)
     def authorize_script(snoo, auth, session, code):
         client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
         post_data = {"scope": ",".join(auth.scopes), "grant_type": "password",
@@ -70,7 +71,7 @@ class AUTHORIZATION_METHODS(utils.CallbackClass):
 
         return session.post(url, auth=client_auth, data=post_data)
 
-    @utils.CallbackClass.key(EXPLICIT_KIND)
+    @cbc.CallbackClass.key(EXPLICIT_KIND)
     def authorize_explicit(snoo, auth, session, code):
         client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
         post_data = {"grant_type": "authorization_code", "code": code,
@@ -79,11 +80,11 @@ class AUTHORIZATION_METHODS(utils.CallbackClass):
 
         return session.post(url, auth=client_auth, data=post_data)
 
-    @utils.CallbackClass.key(IMPLICIT_KIND)
+    @cbc.CallbackClass.key(IMPLICIT_KIND)
     def authorize_implicit(snoo, auth, session, code):
         return None
 
-    @utils.CallbackClass.key(APPLICATION_EXPLICIT_KIND)
+    @cbc.CallbackClass.key(APPLICATION_EXPLICIT_KIND)
     def authorize_application_explicit(snoo, auth, session, code):
         client_auth = HTTPBasicAuth(auth.client_id, auth.secret_id)
         post_data = {"grant_type": "client_credentials"}
@@ -91,7 +92,7 @@ class AUTHORIZATION_METHODS(utils.CallbackClass):
 
         return session.post(url, auth=client_auth, data=post_data)
 
-    @utils.CallbackClass.key(APPLICATION_INSTALLED_KIND)
+    @cbc.CallbackClass.key(APPLICATION_INSTALLED_KIND)
     def authorize_application_implicit(snoo, auth, session, code):
         client_auth = HTTPBasicAuth(auth.client_id, '')
         post_data = {"grant_type": "https://oauth.reddit.com/grants/installed_client",

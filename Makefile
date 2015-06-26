@@ -1,7 +1,8 @@
 all:
-	@echo "test         - run test commands"
-	@echo "test-cruel   - run test commands with pep8 and flakes"
-	@echo "clean        - get rid of spare files"
+	@echo "test               - run test commands"
+	@echo "test-cruel         - run test commands with pep8 and flakes"
+	@echo "clean              - get rid of spare files"
+	@echo "clean-cassettes    - remove stored VCR cassettes (tests will require auth)"
 
 test:
 	py.test snooble tests
