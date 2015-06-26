@@ -153,6 +153,7 @@ class TestCBC(object):
             def star(arg):
                 return "*{arg}*".format(arg=arg)
 
+            @cbc.CallbackClass.default
             def default(arg):
                 return "{arg}".format(arg=arg)
 
@@ -171,6 +172,31 @@ class TestCBC(object):
 
         assert len(MY_CALLBACKS) == 4
         assert set(MY_CALLBACKS) == {'hyphen', 'plus', 'star', 'default'}
+
+        class HIDDEN_DEFAULT(cbc.CallbackClass):
+
+            @cbc.CallbackClass.default
+            @cbc.CallbackClass.ignore
+            def default(arg):
+                pass
+
+            def hyphen(arg):
+                return "-{arg}-".format(arg=arg)
+
+        assert 'default' not in HIDDEN_DEFAULT
+        assert HIDDEN_DEFAULT['hyphen'] is HIDDEN_DEFAULT.hyphen
+        assert HIDDEN_DEFAULT['non-existant'] is HIDDEN_DEFAULT.default
+
+        with pytest.raises(TypeError):
+            class BAD_CALLBACKS(cbc.CallbackClass):
+
+                @cbc.CallbackClass.default
+                def default_one():
+                    pass
+
+                @cbc.CallbackClass.default
+                def default_two():
+                    pass
 
     def test_iteration_methods(self):
         class MY_CALLBACKS(cbc.CallbackClass):
