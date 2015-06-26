@@ -69,8 +69,8 @@ wrappers around the stored data dictionary) but there is some differentiation ma
 between different types, and a handful of helper methods in various places.
 
 
-utils.py
---------
+utils/\_\_init\_\_.py
+---------------------
 This file contains functions that are needed in two or three different places, and
 therefore fall under a fairly general "rule of three" idea, and so have been factored out
 as much as possible.  Currently these include:
@@ -83,8 +83,24 @@ as much as possible.  Currently these include:
   this can be useful if you want to check at the end that all of the arguments were used.
   (I don't necessarily, but I have used that feature elsewhere.)
 
+* ``assign_parameters`` - Instead of a big if/elif/else switch statement, this allows
+  parameters to be assigned to an object using ``fetch_parameter`` using a list of
+  parameters rather than going through each parameter individually.  Again, it's used in
+  the ``OAuth`` class initialiser.
+
 * ``strlist`` - Python strings are iterable, which is useful, but means that if you want
   to accept either a list of strings, or a single string, you need to be a bit clever
   about it.  This method checks isinstance to determine if it is a string, so is hidden
   here so I can pretend that I'm still ducktyping all the way, and also so that it can
   be made Py2/Py3 compatible fairly easily
+
+
+utils/cbc.py
+------------
+Some parts of snooble's internals are implemented as a mapping of keys to callbacks,
+particularly snooble's authorization mechanism (in ``snooble/__init__.py`` and
+``snooble/oauth.py``).  This could be done by defining however many functions are
+necessary and manually putting them into a dictionary, *or* it could be done by
+overengineering a complex solution using metaclasses and lots of confusing abstractions
+so that all of the callback functions are put in a single class namespace.  I'm ashamed
+to say I chose the latter, please don't tell GvM.
