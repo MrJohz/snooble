@@ -119,6 +119,15 @@ class TestRatelimit(object):
         assert limit1 != limit3
         assert limit1 != (60, 60)
 
+    def test_repr(self):
+        rl = ratelimit.RateLimiter(rate=60, per=60, bursty=True)
+        assert "rate=60" in repr(rl)
+        assert "per=60" in repr(rl)
+        assert "bursty=True" in repr(rl)
+        assert "current=60" in repr(rl)
+        rl.take(30)
+        assert "current=30" in repr(rl)
+
 
 class TestLimitation(object):
 

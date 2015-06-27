@@ -63,6 +63,15 @@ class TestOAuth(object):
 
         assert auth.client_id == '...'
 
+    def test_repr(self):
+        auth = oauth.OAuth(oauth.APPLICATION_INSTALLED_KIND, scopes=['read'],
+                           client_id='...', device_id='...')
+        auth_repr = repr(auth)
+        assert 'APPLICATION_INSTALLED_KIND' in auth_repr
+        assert "client_id='...'" in auth_repr
+        assert "device_id='...'" in auth_repr
+        assert "scopes=['read']" in auth_repr
+
 
 class TestAuthorization(object):
 
@@ -73,6 +82,10 @@ class TestAuthorization(object):
         assert auth.token == 'b'
         assert auth.recieved == 0
         assert auth.length == 1
+
+    def test_repr(self):
+        auth = oauth.Authorization(token_type='a', token='b', recieved=0, length=1)
+        assert all(i in repr(auth) for i in ('token_type', 'recieved', 'token', 'length'))
 
     def test_equality(self):
         auth1 = oauth.Authorization(token_type='a', token='b', recieved=0, length=1)

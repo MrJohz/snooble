@@ -7,7 +7,6 @@ Snooble
 TODO:
 -----
 
-- Classes should probably implement some repr methods.
 - Return types
 
     - More of them

@@ -80,6 +80,12 @@ class RateLimiter(object):
     def limitate(self, obj, overrides):
         return _LimitationObject(self, obj, overrides)
 
+    def __repr__(self):
+        cls = self.__class__.__name__
+        fmt = "{cls}(rate={rate}, per={per}, bursty={bursty}, current={curr})"
+        return fmt.format(cls=cls, rate=self.bucket_size, bursty=self.bursty,
+                          per=self.refresh_period, curr=self.current_bucket)
+
     def __eq__(self, other):
         if type(other) == type(self):
             return (self.bucket_size == other.bucket_size and
