@@ -4,6 +4,14 @@ from .utils import cbc
 from requests.auth import HTTPBasicAuth
 from urllib.parse import urljoin
 
+__all__ = [
+    # constants
+    'SCRIPT_KIND', 'EXPLICIT_KIND', 'IMPLICIT_KIND', 'APPLICATION_INSTALLED_KIND',
+    'APPLICATION_EXPLICIT_KIND', 'ALL_SCOPES',
+    # Classes
+    'OAuth', 'Authorization'
+]
+
 SCRIPT_KIND = "script"
 EXPLICIT_KIND = "explicit"
 IMPLICIT_KIND = "implicit"
@@ -41,12 +49,6 @@ class OAuth(object):
     forms.  An object of this kind can be passed to the :class:`~snooble.Snooble`
     intializer, or via the :meth:`~snooble.Snooble.oauth` method.  An OAuth object may
     also be returned by the :meth:`~snooble.Snooble.oauth` method.
-
-    Attributes:
-        authorization (Authorization or None):
-            Will be None by default.  If an authorization request has been successfully
-            completed, the :class:`~snooble.Snooble` class will set this to the
-            corresponding :class:`~snooble.oauth.Authorization` object.
 
     .. seealso::
         :meth:`~snooble.oauth.OAuth.__init__`:
@@ -89,13 +91,19 @@ class OAuth(object):
 
         self.kind = kind
         self.scopes = scopes
-        self.authorization = None
 
         self.mobile = kwargs.pop('mobile', False)
         self.duration = kwargs.pop('duration', 'temporary')
         self.device_id = kwargs.pop('device_id', 'DO_NOT_TRACK_THIS_USER')
-
         utils.assign_parameters(self, kwargs, KIND_PARAMETER_MAPPING[self.kind])
+
+        self.authorization = None
+        """The details of this account's authorization request, or ``None``.
+
+        Will be ``None`` by default.  If an authorization request has been successfully
+        completed, the :class:`~snooble.Snooble` class will set this to the
+        corresponding :class:`~snooble.oauth.Authorization` object.
+        """
 
     def __repr__(self):
         cls = self.__class__.__name__
@@ -106,7 +114,7 @@ class OAuth(object):
 
     @property
     def authorized(self):
-        """Returns True if this instance has an authorization property.
+        """True if this instance has an authorization property.
 
         Does not fully check the validity of the authorization property,
         only that it exists.
@@ -115,12 +123,23 @@ class OAuth(object):
 
 
 class Authorization(object):
+    """A class containing the details of a successful authorization attempt.
+
+    Contains the :attr:`~.token_type`, and the :attr:`~.token`.  It also stores the time
+    the token was :attr:`~.recieved`, and the :attr:`~.length` that this token will last.
+    Note that these last two attributes are not currently used by Snooble, but may be
+    useful in future, or to users.
+    """
 
     def __init__(self, token_type, token, recieved, length):
         self.token_type = token_type
+        "*(str)* Should always be the string ``'bearer'``."
         self.token = token
+        "*(str)* A Reddit session token."
         self.recieved = recieved
+        "*(int)* When the token was recieved in seconds since the epoch.  (Always UTC)."
         self.length = length
+        "*(int)* The length of time the token will last in seconds."
 
     def __repr__(self):
         cls = self.__class__.__name__
